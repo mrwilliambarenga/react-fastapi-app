@@ -35,7 +35,7 @@ def index():
 # Path Parameters   (e.g. /get-student/1)
 @app.get("/get-student/{student_id}")
 def get_student(student_id: int = Path(..., description="The ID of the student you want to view.", gt=0, lt=3)):
-    return students.get(student_id, "Student not found")
+    return students.get(student_id, {"Error": f"Student {student_id} not found"})
 
 
 # Query Parameters  (e.g. /get-by-name/?name=john)
@@ -44,14 +44,14 @@ def get_student(*, name: str = None):
     for s_id in students:
         if students[s_id]["name"] == name:
             return students[s_id]
-    return "Student not found"
+    return {"Error": f"Student with name \'{name}\' not found"}
 
 
 # Post Method
 @app.post("/create-student/{student_id}")
 def create_student(*, student_id: int, student: Student):
     if student_id in students:
-        return {"Error": "Student already exists"}
+        return {"Error": f"Student {student_id} already exists"}
 
     students[student_id] = student
     return students[student_id]
@@ -66,3 +66,14 @@ def update_student(*, student_id: int, student_update: StudentUpdate):
     for k, v in updates.items():
         students[student_id][k] = v
     return students[student_id]
+
+
+# Delete Method
+@app.delete("/delete-student/{student_id}")
+def delete_student(*, student_id: int):
+    if student_id not in students:
+        return {"Error": "Student doesn't exist"}
+    
+    student_data = students.pop(student_id)
+
+    return {f"Deleted student {student_id}": student_data}
